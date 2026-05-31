@@ -1,0 +1,119 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		88885CC676A54B0F8A0C933A /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 15E9F656217649FABEE8AF19; };
+		30C4AF81421A4C1482489082 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 0D33B40C58014B05A934D1E2; };
+		2AC43E62C1274986B59E3D99 /* sw.js in Resources */ = {isa = PBXBuildFile; fileRef = 3FD9338ACF014ED49B4B8B1A; };
+		B56E94F7F31141AF85263B5E /* css/style.css in Resources */ = {isa = PBXBuildFile; fileRef = F8F6E23B4C7140828B6765AB; };
+		43FE9B3834A749D9BDEEBE6C /* js/chunkear.js in Resources */ = {isa = PBXBuildFile; fileRef = DF6E26263B6B404BBF581D62; };
+		809573AB4FF84C1FAE5FE492 /* js/audio.js in Resources */ = {isa = PBXBuildFile; fileRef = 9292720CC6D14B93907F9038; };
+		BEA9E20BABF64EE590743409 /* js/corpus.js in Resources */ = {isa = PBXBuildFile; fileRef = 8375F9F542B74AACA54865D4; };
+		31C0F2F4569A40FD910FB9EF /* ChunkEarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669CC75A56D94B7B828D3C60; };
+		25D1B09D43684A1AA098FD1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 62F99D22968F48B4BF90BECB; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		669CC75A56D94B7B828D3C60 /* ChunkEarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChunkEarApp.swift; sourceTree = "<group>"; };
+		78ED55C4EC9D48A3A3DC1B30 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		62F99D22968F48B4BF90BECB /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		48FF500B3D9E44F6B8BFCB5A /* ChunkEar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChunkEar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		15E9F656217649FABEE8AF19 /* web/index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "web/index.html"; sourceTree = "<group>"; };
+		0D33B40C58014B05A934D1E2 /* web/manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "web/manifest.json"; sourceTree = "<group>"; };
+		3FD9338ACF014ED49B4B8B1A /* web/sw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/sw.js"; sourceTree = "<group>"; };
+		F8F6E23B4C7140828B6765AB /* web/css/style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "web/css/style.css"; sourceTree = "<group>"; };
+		DF6E26263B6B404BBF581D62 /* web/js/chunkear.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/js/chunkear.js"; sourceTree = "<group>"; };
+		9292720CC6D14B93907F9038 /* web/js/audio.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/js/audio.js"; sourceTree = "<group>"; };
+		8375F9F542B74AACA54865D4 /* web/js/corpus.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/js/corpus.js"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		342D56EC60DB414D86ECFAE4 = {isa = PBXGroup; children = (51E36E206B654D459E849602 /* Products */,); sourceTree = "<group>"; };
+		51E36E206B654D459E849602 /* Products */ = {isa = PBXGroup; children = (48FF500B3D9E44F6B8BFCB5A /* ChunkEar.app */,); name = Products; sourceTree = "<group>"; };
+		7481EC88066546A29EAA32E6 = {isa = PBXGroup; children = (
+			669CC75A56D94B7B828D3C60 /* ChunkEarApp.swift */,
+			78ED55C4EC9D48A3A3DC1B30 /* Info.plist */,
+			62F99D22968F48B4BF90BECB /* LaunchScreen.storyboard */,
+			15E9F656217649FABEE8AF19 /* web/index.html */,
+			0D33B40C58014B05A934D1E2 /* web/manifest.json */,
+			3FD9338ACF014ED49B4B8B1A /* web/sw.js */,
+			F8F6E23B4C7140828B6765AB /* web/css/style.css */,
+			DF6E26263B6B404BBF581D62 /* web/js/chunkear.js */,
+			9292720CC6D14B93907F9038 /* web/js/audio.js */,
+			8375F9F542B74AACA54865D4 /* web/js/corpus.js */,
+		); path = "ChunkEar"; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3C27D43012524A589DC413E7 /* ChunkEar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D17E1C53196A4F1489911898;
+			buildPhases = (6C5286C94763408F81BD8E0E /* Sources */, CC6083C26F734EE5AD8DF54D /* Frameworks */, 64D1916A4C2445BEA698D796 /* Resources */,);
+			buildRules = (); dependencies = ();
+			name = ChunkEar; productName = ChunkEar;
+			productReference = 48FF500B3D9E44F6B8BFCB5A; productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7481EC88066546A29EAA32E6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = { BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1500; LastUpgradeCheck = 1500; };
+			buildConfigurationList = 17C1909CCA9041A2B3422B7B;
+			compatibilityVersion = "Xcode 14.0"; developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0; knownRegions = (en, "zh-Hans", Base);
+			mainGroup = 342D56EC60DB414D86ECFAE4; productRefGroup = 51E36E206B654D459E849602;
+			projectDirPath = ""; projectRoot = "";
+			targets = (3C27D43012524A589DC413E7 /* ChunkEar */,);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		64D1916A4C2445BEA698D796 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+			25D1B09D43684A1AA098FD1A /* LaunchScreen.storyboard in Resources */,
+			88885CC676A54B0F8A0C933A /* index.html in Resources */,
+			30C4AF81421A4C1482489082 /* manifest.json in Resources */,
+			2AC43E62C1274986B59E3D99 /* sw.js in Resources */,
+			B56E94F7F31141AF85263B5E /* css/style.css in Resources */,
+			43FE9B3834A749D9BDEEBE6C /* js/chunkear.js in Resources */,
+			809573AB4FF84C1FAE5FE492 /* js/audio.js in Resources */,
+			BEA9E20BABF64EE590743409 /* js/corpus.js in Resources */,
+		); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+		CC6083C26F734EE5AD8DF54D = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		6C5286C94763408F81BD8E0E = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (31C0F2F4569A40FD910FB9EF /* ChunkEarApp.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };
+
+/* Begin XCBuildConfiguration section */
+		50B0B239F98141BB9EEA397C = {isa = XCBuildConfiguration; buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1;
+			ENABLE_PREVIEWS = YES; INFOPLIST_FILE = Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+			LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+			MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.chunkear.app;
+			PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2"; DEVELOPMENT_TEAM = "";
+		}}; name = {name};}};
+		42A8AE0F4D89488BBCF3AE7A = {isa = XCBuildConfiguration; buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1;
+			ENABLE_PREVIEWS = YES; INFOPLIST_FILE = Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+			LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+			MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.chunkear.app;
+			PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2"; DEVELOPMENT_TEAM = "";
+		}}; name = {name};}};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		17C1909CCA9041A2B3422B7B = {isa = XCConfigurationList; buildConfigurations = (50B0B239F98141BB9EEA397C, 42A8AE0F4D89488BBCF3AE7A,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		D17E1C53196A4F1489911898 = {isa = XCConfigurationList; buildConfigurations = (50B0B239F98141BB9EEA397C, 42A8AE0F4D89488BBCF3AE7A,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = 7481EC88066546A29EAA32E6 /* Project object */;
+}
