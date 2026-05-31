@@ -1,0 +1,13 @@
+# 进度文件（用户个人数据，不同步）
+progress.json
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# macOS
+.DS_Store
