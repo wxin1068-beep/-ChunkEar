@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 主主题（DayNight = 跟随系统暗黑模式） -->
     <style name="Theme.ChunkEar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">#4A90D9</item>
         <item name="colorPrimaryVariant">#357ABD</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="android:statusBarColor">#4A90D9</item>
-        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="colorSecondary">#5a9fd4</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- 闪屏主题（启动时短暂显示） -->
+    <style name="Theme.ChunkEar.Splash" parent="Theme.ChunkEar">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
     </style>
 </resources>

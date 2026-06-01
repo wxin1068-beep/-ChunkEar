@@ -1,49 +1,75 @@
-// 英语听力训练 - Service Worker
-const CACHE_NAME = 'english-listening-v1';
+// ChunkEar - Service Worker v3
+const CACHE_NAME = "chunkear-v3";
 const ASSETS = [
-  './',
-  './index.html',
-  './css/style.css',
-  './js/content.js',
-  './js/audio.js',
-  './js/app.js',
-  './js/dictation.js',
-  './js/quiz.js',
-  './js/shadowing.js',
-  './js/cloze.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './apple-touch-icon.png'
+  "./",
+  "./index.html",
+  "./css/style.css",
+  "./js/audio.js",
+  "./js/corpus.js",
+  "./js/chunkear.js",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png",
 ];
 
-// 安装时缓存所有资源
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
-    })
+    }),
   );
   self.skipWaiting();
 });
 
-// 激活时清理旧缓存
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key)),
       );
-    })
+    }),
   );
   self.clients.claim();
 });
 
-// 拦截请求，缓存优先
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // 缓存优先策略：静态资源
+  if (
+    ASSETS.includes("./" + url.pathname) ||
+    url.pathname.match(/\.(html|css|js|json|png)$/)
+  ) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        return cached || fetch(event.request);
+      }),
+    );
+    return;
+  }
+
+  // 网络优先策略：TTS 语音（如果在线就缓存）
+  if (url.pathname === "/tts") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME + "-tts").then((cache) => {
+            cache.put(event.request, clone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        }),
+    );
+    return;
+  }
+
+  // 默认：网络优先
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request);
-    })
+    fetch(event.request).catch(() => caches.match(event.request)),
   );
 });

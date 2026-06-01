@@ -1,146 +1,171 @@
-<div align="center">
-
 # 🎧 ChunkEar · 语块听
 
 **从最简单的语义模块开始，逐级自动化，彻底攻克英语听力。**
-
-[![macOS](https://img.shields.io/badge/macOS-✓-brightgreen?logo=apple)](https://github.com/wxin1068-beep/-ChunkEar)
-[![Python](https://img.shields.io/badge/Python-3.6+-blue?logo=python)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/wxin1068-beep/-ChunkEar/pulls)
-
-> _"不是哑巴英语，是聋子英语。"_
-> — 王大爷
-
-</div>
+**不达标，不进级。**
 
 ---
 
-## 🌟 核心理念
-
-英语听不懂的根本原因不是词汇量小，而是**耳朵没练出一套对声音信号的自动解码能力**。
-
-ChunkEar 不走传统的"背单词→学语法→做阅读"路线，而是：
-
-```
-从最简单的语义模块（语块）入手
-  → 听到烂熟（自动化）
-  → 再进入下一层难度
-  → 不达标、不进阶
-```
-
-所谓**语义模块**，就是英语中反复成块出现的短语结构——像 `How are you doing?`、`The thing is...`、`As far as I know...`——它们是语言的预制砖头，大脑不是逐词处理而是整块识别的。
-
----
-
-## 📚 语料库结构
-
-**250+** 个高频语义模块，分 **6 级**递进：
-
-| 级别 | 名称 | 模块数 | 示例 |
-|:---:|------|:------:|------|
-| 🟢 **0** | 极简根基 | 50 | `Hello`, `Thank you`, `Of course`, `No way` |
-| 🔵 **1** | 日常问候 | 44 | `How are you?`, `Nice to meet you`, `Excuse me` |
-| 🔷 **2** | 生活常用 | 61 | `I don't know`, `What's going on`, `Let me see` |
-| 🟣 **3** | 表达观点 | 54 | `In my opinion`, `The thing is`, `To be honest` |
-| 🟡 **4** | 高级表达 | 55 | `When it comes to`, `Having said that`, `As a result` |
-| 🔴 **5** | 精通自动化 | 50 | `All things considered`, `Off the top of my head` |
-
-📌 每级**全部达标后**，下一级**自动解锁**。
-
----
-
-## 🎮 三种训练模式
-
-| 模式 | 用途 | 方法 |
-|:---:|------|------|
-| 📖 **学习模式** | 初次接触 | 听英语 → 看释义 → 再听一遍，建立第一印象 |
-| 🎯 **听辨模式** | ✨核心训练 | 听音频 → 4选1辨义，**连续3次正确**即"达标" |
-| ⏱️ **自动化测试** | 终极检验 | **限时6秒**作答，3条命。失败退回重练 |
-
----
-
-## 🚀 快速开始
-
-### 系统要求
-- **macOS**（使用系统内置 `say` 语音合成引擎，**零外部依赖**）
-- **Python 3.6+**
-
-### 安装运行
-
-```bash
-# 1. 下载
-git clone https://github.com/wxin1068-beep/-ChunkEar.git
-cd -ChunkEar
-
-# 2. 直接运行
-python3 trainer.py
-```
-
-就是这么简单。首次启动时自动进入主菜单，从 **0级（极简根基）** 开始。
-
----
-
-## 📊 进度管理
-
-学习进度自动保存在 `progress.json`，关掉终端再打开**不会丢**。
-
-主菜单按 **`s`** 键查看统计：
-- ✅ 各级达标数
-- 📝 练习总次数
-- 🎯 整体正确率
-
----
-
-## 📁 项目结构
+## 项目结构
 
 ```
 ChunkEar/
-├── trainer.py       🖥️ 主程序（交互式听力训练器）
-├── corpus.py        📖 语料库（6级250+语义模块）
-├── run.sh           ▶️ 快捷启动脚本
-├── progress.json    📈 用户进度（自动生成）
-├── LICENSE          ⚖️ MIT 开源协议
-└── README.md        📄 本文件
+├── ChunkEar-app/         🌐 PWA 网页版（核心）
+│   ├── index.html
+│   ├── css/style.css
+│   ├── js/
+│   │   ├── audio.js     音频管理（原生TTS → Web Speech 自动降级）
+│   │   ├── corpus.js     语料库（6级315模块）
+│   │   └── chunkear.js   主应用逻辑
+│   ├── sw.js             离线 Service Worker
+│   └── manifest.json
+├── ChunkEar-iOS/         📱 iOS App（Xcode 项目）
+│   └── ChunkEar/ChunkEarApp.swift 原生 TTS 桥接
+├── ChunkEar-Android/     🤖 Android App（Gradle 项目）
+│   └── app/.../MainActivity.kt   原生 TTS 桥接
+├── corpus.py             语料库源
+├── trainer.py            命令行训练器
+├── scripts/
+│   ├── build-android.sh   Android 构建脚本
+│   ├── build-ios.sh        iOS 构建脚本
+│   └── setup-android-release.sh   Android 签名配置
+└── run.sh                 快捷启动
+```
+
+## 快速使用
+
+### PWA 网页版（推荐，无需安装）
+
+用 Safari/Chrome 打开 `ChunkEar-app/index.html`，添加到主屏幕即可。
+
+### macOS 命令行版
+
+```bash
+./run.sh cli
+# 或
+python3 trainer.py
+```
+
+### iOS App
+
+需要 macOS + Xcode 15+：
+
+```bash
+./run.sh ios
+# 在 Xcode 中选自己的 Team → Run
+```
+
+### Android App
+
+```bash
+./run.sh android
+# 生成的 APK 在 ChunkEar-Android/app/build/outputs/apk/debug/
 ```
 
 ---
 
-## 🗺️ 路线图
+## 📱 App Store 上架指南
 
-- [x] ✅ 6级语料库（250+ 模块）
-- [x] ✅ 学习 / 听辨 / 自动化测试 三模式
-- [x] ✅ 逐级解锁机制
-- [x] ✅ 进度持久化与统计
-- [ ] 📱 iOS / Android 原生App
-- [ ] ✏️ 用户可自定义添加语义模块
-- [ ] 📚 更多语料级别（专业领域）
-- [ ] 🔔 间隔复习提醒
-- [ ] 🌐 PWA 网页版同步
+### iOS App Store
+
+**前置条件：** Apple Developer 账号（年费 ¥688/$99）
+
+**步骤：**
+
+1. **配置开发者团队**
+   - 打开 `ChunkEar-iOS/ChunkEar.xcodeproj`
+   - 在 Signing & Capabilities 中选自己的 Team
+
+2. **生成截图**
+   - 在模拟器中运行 App（iPhone 16 6.7寸）
+   - `Command + S` 截图
+   - 需要 6.7寸、6.5寸、5.5寸 三种截图各一组
+
+3. **App Store Connect 创建应用**
+   - 前往 [appstoreconnect.apple.com](https://appstoreconnect.apple.com)
+   - Apps → + → 新 App
+   - 平台: iOS, 名称: ChunkEar, 语言: 简体中文
+   - Bundle ID: `com.chunkear.app`（如果被占用则改 Info.plist）
+
+4. **填写元数据**
+   - 副标题: 英语听力语义模块训练
+   - 关键词: 英语,听力,口语,语块,语义,训练,学习
+   - 描述: ChunkEar 是一个基于语义模块（语块）理论的英语听力训练工具...
+   - 支持网址: https://github.com/wxin1068-beep/-ChunkEar
+   - 隐私政策: 可使用 [https://app-privacy-policy-generator.nisrulz.com/](https://app-privacy-policy-generator.nisrulz.com/) 生成
+
+5. **构建与上传**
+   - Xcode: Product → Archive
+   - Organizer → Distribute App → App Store Connect → Upload
+   - 等待处理完成（约 15-30 分钟）
+
+6. **提交审核**
+   - 在 App Store Connect 中提交
+   - 审核通常 1-3 个工作日
+
+### Google Play Store
+
+**前置条件：** Google Play Console 账号（一次性 $25）
+
+**步骤：**
+
+1. **生成签名密钥**
+
+   ```bash
+   bash scripts/setup-android-release.sh
+   ```
+
+   然后将密钥密码设为环境变量：
+
+   ```bash
+   echo 'export CHUNKEAR_STORE_PASSWORD="你的密码"' >> ~/.zshrc
+   echo 'export CHUNKEAR_KEY_ALIAS="chunkear"' >> ~/.zshrc
+   echo 'export CHUNKEAR_KEY_PASSWORD="你的密钥密码"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+
+2. **构建发布版 APK**
+
+   ```bash
+   bash scripts/build-android.sh release
+   ```
+
+3. **Google Play Console**
+   - 前往 [play.google.com/console](https://play.google.com/console)
+   - 创建应用 → 选择"Google Play 应用签名" → 上传 APK
+   - 首次需要填写商品详情、内容评级、定价分发
+
+4. **应用签名**
+   - Google Play 会使用 Play App Signing
+   - 上传上一步生成的 APK
+
+5. **发布**
+   - 选择"正式版"或"内部测试"先测试
+   - 审核通常几小时到 1 天
 
 ---
 
-## 🤝 参与贡献
+## 核心功能
 
-- **提 Issue**：发现 Bug 或有建议？
-- **提 PR**：想加新语料或功能？
-- **Star**：觉得有用就点个星 ⭐
+| 功能       | 说明                                           |
+| ---------- | ---------------------------------------------- |
+| 6 级语料库 | 315 个高频英语语义模块，从极简到精通           |
+| 学习模式   | 听英语 → 看释义 → 可控重播                     |
+| 听辨模式   | 4 选 1 辨义，连续 3 次正确达标                 |
+| 自动化测试 | 限时 6 秒 + 5 条命，检验真功夫                 |
+| 间隔复习   | 通关后 1/3/7/14/30 天周期提醒                  |
+| 暗黑模式   | 手动切换，保护夜间视力                         |
+| 进度管理   | 本地持久化 + JSON 导出/导入                    |
+| PWA 离线   | Service Worker 缓存，断网可用                  |
+| 原生 TTS   | iOS AVSpeechSynthesizer / Android TextToSpeech |
 
----
+## 技术栈
 
-## ⚖️ 开源协议
+- **PWA**: 原生 HTML/CSS/JavaScript，零依赖
+- **iOS**: SwiftUI + WKWebView + AVSpeechSynthesizer，目标 iOS 16+
+- **Android**: Kotlin + WebView + TextToSpeech，目标 SDK 34
+- **CLI**: Python 3，macOS `say` 命令
+- **语料**: 315 个模块，6 级递进，自动解锁
 
-[MIT License](LICENSE) — 欢迎 Fork、PR、Issue。
+## License
 
----
-
-## 🙏 致谢
-
-本工具源于王大爷的英语学习理念：
-
-> 🧠 **语义模块优先** — 语言的最小认知单元是语块，不是单词
-> 👂 **听力先行** — 聋子英语是根本问题，先攻破耳朵
-> 🎯 **自动化 > 知道** — 3000词滚到烂熟，远强于10000词半生不熟
-> 📈 **逐级进阶** — 不达标不进下一级，每一步都踩实
-
-> _学语言不是堆知识，是练肌肉。耳朵的肌肉，只能靠反复听来练。_
+MIT

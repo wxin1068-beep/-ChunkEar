@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 背景色 -->
+    <item android:drawable="@android:color/white" />
+
+    <!-- 居中内容 -->
+    <item
+        android:width="200dp"
+        android:height="200dp"
+        android:gravity="center">
+        <layer-list>
+            <!-- 图标 🎧 （用文字替代） -->
+            <item
+                android:width="120dp"
+                android:height="120dp"
+                android:gravity="center">
+                <shape android:shape="rectangle">
+                    <solid android:color="#4A90D9" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</layer-list>

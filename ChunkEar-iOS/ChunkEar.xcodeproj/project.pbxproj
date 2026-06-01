@@ -15,6 +15,7 @@
 		BEA9E20BABF64EE590743409 /* js/corpus.js in Resources */ = {isa = PBXBuildFile; fileRef = 8375F9F542B74AACA54865D4; };
 		31C0F2F4569A40FD910FB9EF /* ChunkEarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669CC75A56D94B7B828D3C60; };
 		25D1B09D43684A1AA098FD1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 62F99D22968F48B4BF90BECB; };
+			AABBCCDD0000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AABBCCDD0000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		DF6E26263B6B404BBF581D62 /* web/js/chunkear.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/js/chunkear.js"; sourceTree = "<group>"; };
 		9292720CC6D14B93907F9038 /* web/js/audio.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/js/audio.js"; sourceTree = "<group>"; };
 		8375F9F542B74AACA54865D4 /* web/js/corpus.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "web/js/corpus.js"; sourceTree = "<group>"; };
+			AABBCCDD0000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -45,6 +47,7 @@
 			DF6E26263B6B404BBF581D62 /* web/js/chunkear.js */,
 			9292720CC6D14B93907F9038 /* web/js/audio.js */,
 			8375F9F542B74AACA54865D4 /* web/js/corpus.js */,
+			AABBCCDD0000000000000002 /* Assets.xcassets */,
 		); path = "ChunkEar"; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
@@ -82,7 +85,8 @@
 			43FE9B3834A749D9BDEEBE6C /* js/chunkear.js in Resources */,
 			809573AB4FF84C1FAE5FE492 /* js/audio.js in Resources */,
 			BEA9E20BABF64EE590743409 /* js/corpus.js in Resources */,
-		); runOnlyForDeploymentPostprocessing = 0; };
+						AABBCCDD0000000000000001 /* Assets.xcassets in Resources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 		CC6083C26F734EE5AD8DF54D = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		6C5286C94763408F81BD8E0E = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (31C0F2F4569A40FD910FB9EF /* ChunkEarApp.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };

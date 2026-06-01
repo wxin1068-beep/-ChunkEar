@@ -1,190 +1,126 @@
-// ChunkEar Audio Manager — 支持语音选择
+// ChunkEar Audio Manager — 谷歌 TTS 代理优先，Web Speech API 兜底
 const AudioManager = {
-  synth: null,
-  utterance: null,
-  rate: 1,
+  _rate: 1.0,
+  _audio: null,
+  _synth: null,
+  _utterance: null,
+  _usingNative: false,
+  _usingProxy: false,
+  _usingSpeech: false,
   isPlaying: false,
   isPaused: false,
   onEnd: null,
-  onTick: null,
-  _timer: null,
-  _duration: 0,
-  _voice: null,
-  _voiceName: null,   // 用户选择的声音名称
-
-  // ============ 初始化 ============
 
   init() {
-    this.synth = window.speechSynthesis;
-    // 加载用户上次选的声音
-    try {
-      const saved = localStorage.getItem('chunkear-voice');
-      if (saved) this._voiceName = saved;
-    } catch(e) {}
-    this._loadVoice();
-    // 某些浏览器（Safari）语音列表异步加载
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = () => this._loadVoice();
-    }
-  },
+    this._rate = parseFloat(localStorage.getItem("chunkear-rate")) || 1.0;
 
-  // ============ 语音列表 ============
-
-  getEnglishVoices() {
-    if (!this.synth) this.init();
-    const all = this.synth.getVoices();
-    // 返回所有英语语音
-    return all.filter(v => v.lang.startsWith('en'));
-  },
-
-  getAllVoices() {
-    if (!this.synth) this.init();
-    return this.synth.getVoices();
-  },
-
-  // ============ 语音选择 ============
-
-  _loadVoice() {
-    const voices = this.synth.getVoices();
-    if (voices.length === 0) return;
-
-    // 优先用用户选择的
-    if (this._voiceName) {
-      const found = voices.find(v => v.name === this._voiceName);
-      if (found) {
-        this._voice = found;
-        return;
-      }
-    }
-
-    // 否则按优先级选
-    this._voice = voices.find(v => v.lang.startsWith('en-GB'))
-      || voices.find(v => v.lang.startsWith('en-US'))
-      || voices.find(v => v.lang.startsWith('en'))
-      || null;
-  },
-
-  setVoice(name) {
-    this._voiceName = name;
-    try {
-      localStorage.setItem('chunkear-voice', name || '');
-    } catch(e) {}
-    this._loadVoice();
-  },
-
-  getVoiceName() {
-    return this._voice ? this._voice.name : '默认';
-  },
-
-  // ============ 播放 ============
-
-  speak(text, callback) {
-    if (!this.synth) this.init();
-    this.stop();
-
-    if (!text) return;
-
-    this.utterance = new SpeechSynthesisUtterance(text);
-    this.utterance.lang = 'en-US';
-    this.utterance.rate = this.rate;
-    this.utterance.pitch = 1;
-    this.utterance.volume = 1;
-
-    if (this._voice) this.utterance.voice = this._voice;
-
-    this._duration = Math.max(text.length * 60 / (this.rate || 1), 500);
-    this.isPlaying = true;
-    this.isPaused = false;
-
-    const startTime = Date.now();
-
-    this.utterance.onstart = () => {
-      this.isPlaying = true;
-      this._startProgress(startTime);
-    };
-
-    this.utterance.onend = () => {
-      this.isPlaying = false;
-      this.isPaused = false;
-      this._stopProgress();
-      if (this.onEnd) this.onEnd();
-      if (callback) callback();
-    };
-
-    this.utterance.onerror = () => {
-      this.isPlaying = false;
-      this.isPaused = false;
-      this._stopProgress();
-      if (this.onEnd) this.onEnd();
-      if (callback) callback();
-    };
-
-    try {
-      this.synth.speak(this.utterance);
-    } catch (e) {
-      console.warn('TTS speak failed:', e);
-      this.isPlaying = false;
-      if (callback) callback();
-    }
-  },
-
-  // ============ 其他 ============
-
-  speakSentences(sentences, index, onSentenceEnd, onComplete) {
-    if (index >= sentences.length) {
-      if (onComplete) onComplete();
+    // 优先级 1: 原生 TTS 桥接 (iOS/Android)
+    if (window.nativeTTS && typeof window.nativeTTS.speak === "function") {
+      this._usingNative = true;
       return;
     }
-    this.onEnd = () => {
-      if (onSentenceEnd) onSentenceEnd(index);
-      setTimeout(() => {
-        this.speakSentences(sentences, index + 1, onSentenceEnd, onComplete);
-      }, 300);
-    };
-    this.speak(sentences[index]);
-  },
 
-  pause() {
-    if (this.synth && this.isPlaying && !this.isPaused) {
-      this.synth.pause();
-      this.isPaused = true;
-      this._stopProgress();
+    // 优先级 2: 谷歌 TTS 代理（服务器上）
+    if (window.location.protocol !== "file:" && window.Audio) {
+      this._audio = new Audio();
+      this._usingProxy = true;
+      return;
+    }
+
+    // 优先级 3: Web Speech API（本地或兜底）
+    if ("speechSynthesis" in window) {
+      this._synth = window.speechSynthesis;
+      this._usingSpeech = true;
     }
   },
 
-  resume() {
-    if (this.synth && this.isPaused) {
-      this.synth.resume();
-      this.isPaused = false;
+  speak(text, callback) {
+    this.stop();
+    if (!text) return;
+
+    const cb = typeof callback === "function" ? callback : null;
+
+    if (this._usingNative) {
       this.isPlaying = true;
+      window.nativeTTS.speak(text, this._rate, () => {
+        this.isPlaying = false;
+        if (cb) cb();
+      });
+    } else if (this._usingProxy) {
+      this.isPlaying = true;
+      this._audio.src = "/tts?q=" + encodeURIComponent(text) + "&tl=en";
+      this._audio.play().catch(() => {
+        // 代理失败，自动降级到 Web Speech API
+        this._usingProxy = false;
+        if ("speechSynthesis" in window) {
+          this._synth = window.speechSynthesis;
+          this._usingSpeech = true;
+          this.speak(text, callback);
+        } else {
+          this.isPlaying = false;
+          if (cb) cb();
+        }
+      });
+      this._audio.onended = () => {
+        this.isPlaying = false;
+        if (cb) cb();
+      };
+      this._audio.onerror = () => {
+        this.isPlaying = false;
+        if (cb) cb();
+      };
+    } else if (this._usingSpeech) {
+      this._synth.cancel();
+      this._utterance = new SpeechSynthesisUtterance(text);
+      this._utterance.lang = "en-US";
+      this._utterance.rate = this._rate;
+      this._utterance.onend = () => {
+        this.isPlaying = false;
+        if (cb) cb();
+      };
+      this._utterance.onerror = () => {
+        this.isPlaying = false;
+        if (cb) cb();
+      };
+      this.isPlaying = true;
+      this._synth.speak(this._utterance);
     }
   },
 
   stop() {
-    if (this.synth) this.synth.cancel();
+    if (this._usingNative && window.nativeTTS.stop) {
+      window.nativeTTS.stop();
+    } else if (this._usingProxy && this._audio) {
+      this._audio.pause();
+      this._audio.src = "";
+    } else if (this._usingSpeech) {
+      this._synth && this._synth.cancel();
+    }
     this.isPlaying = false;
-    this.isPaused = false;
-    this._stopProgress();
-    this.utterance = null;
+  },
+
+  pause() {
+    if (this._usingSpeech && this.isPlaying && !this.isPaused) {
+      this._synth.pause();
+      this.isPaused = true;
+    }
+  },
+
+  resume() {
+    if (this._usingSpeech && this.isPaused) {
+      this._synth.resume();
+      this.isPaused = false;
+    }
   },
 
   setRate(rate) {
-    this.rate = rate;
+    this._rate = rate;
+    try {
+      localStorage.setItem("chunkear-rate", String(rate));
+    } catch (e) {}
   },
 
-  _startProgress(startTime) {
-    this._stopProgress();
-    this._timer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / this._duration, 0.95);
-      if (this.onTick) this.onTick(progress);
-    }, 100);
+  getRate() {
+    return this._rate;
   },
-
-  _stopProgress() {
-    if (this._timer) {
-      clearInterval(this._timer);
-      this._timer = null;
-    }
-  }
 };
