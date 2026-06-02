@@ -746,6 +746,13 @@ body {
   border-radius: 8px;
   font-size: 14px;
   background: var(--bg);
+  font-family: inherit;
+}
+textarea.cm-input {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
   color: var(--text);
   outline: none;
   transition: border-color 0.2s;

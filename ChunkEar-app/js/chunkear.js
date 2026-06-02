@@ -507,6 +507,13 @@ const ChunkApp = {
       "</label>" +
       "</div>" +
       '<div style="font-size:11px;color:var(--text3);margin-top:8px">导入时自动跳过重复条目（按英文去重）</div>' +
+      '<details style="margin-top:8px;font-size:11px;color:var(--text2);cursor:pointer">' +
+      "<summary>📐 AI 生成格式说明</summary>" +
+      '<pre style="background:var(--bg);padding:10px;border-radius:6px;margin-top:6px;overflow-x:auto;font-size:11px;line-height:1.6;white-space:pre-wrap;color:var(--text)">' +
+      '{\n  "version": 1,\n  "name": "语料名称",\n  "modules": [\n    { "en": "I think so", "cn": "我也这么想" },\n    { "en": "Let me know", "cn": "告诉我一声" }\n  ]\n}' +
+      "</pre>" +
+      '<div style="margin-top:4px">可直接给 Claude/ChatGPT 看这个格式，让它把你想精听的文章转成语料文件。</div>' +
+      "</details>" +
       "</div>";
   },
 

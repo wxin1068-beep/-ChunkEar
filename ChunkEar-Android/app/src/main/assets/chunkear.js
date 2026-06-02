@@ -323,6 +323,45 @@ const ChunkApp = {
     $("cm-cn").value = "";
   },
 
+  batchAddCustomModules(text) {
+    if (!text.trim()) return alert("请粘贴要添加的语料");
+    const lines = text.split("\n").filter((l) => l.trim());
+    const corpus = this._getCustomCorpus();
+    const existingEns = new Set(corpus.map((m) => m.en.toLowerCase().trim()));
+    let added = 0;
+    for (const line of lines) {
+      // 支持格式: "en | cn" 或 "en = cn" 或 "en\tcn"
+      let parts = line.split(/\s*[|=]\s*/).map((s) => s.trim());
+      if (parts.length < 2) parts = line.split("\t").map((s) => s.trim());
+      if (parts.length < 2 || !parts[0] || !parts[1]) continue;
+      const en = parts[0];
+      const cn = parts[1];
+      const key = en.toLowerCase().trim();
+      if (!existingEns.has(key)) {
+        corpus.push({
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+          en,
+          cn,
+          createdAt: Date.now(),
+        });
+        existingEns.add(key);
+        added++;
+      }
+    }
+    this._saveCustomCorpus(corpus);
+    this._rebuildCustomLevel();
+    this._renderCustomMgmt();
+    $("cm-batch-text").value = "";
+    alert(
+      "✅ 批量添加完成！新增 " +
+        added +
+        " 条" +
+        (lines.length !== added
+          ? "，跳过 " + (lines.length - added) + " 条（格式不对或重复）。"
+          : "。"),
+    );
+  },
+
   removeCustomModule(id) {
     let corpus = this._getCustomCorpus();
     corpus = corpus.filter((m) => m.id !== id);
@@ -421,6 +460,13 @@ const ChunkApp = {
       '<input class="cm-input" id="cm-cn" placeholder="中文（如: 我也这么想）" />' +
       "<button class=\"btn cm-add-btn\" onclick=\"ChunkApp.addCustomModule(document.getElementById('cm-en').value, document.getElementById('cm-cn').value)\">添加</button>" +
       "</div>" +
+      "</div>" +
+      "</div>" +
+      '<div class="cm-card">' +
+      '<div class="cm-card-title">📋 批量添加</div>' +
+      '<div class="cm-form">' +
+      '<textarea class="cm-input" id="cm-batch-text" rows="6" placeholder="英文 | 中文&#10;每行一条，用 | 分隔&#10;&#10;例如:&#10;I think so | 我也这么想&#10;Let me know | 告诉我一声&#10;Count me in | 算我一个"></textarea>' +
+      '<button class="btn" onclick="ChunkApp.batchAddCustomModules(document.getElementById(\'cm-batch-text\').value)">批量添加</button>' +
       "</div>" +
       "</div>" +
       '<div class="cm-card">' +
