@@ -40,6 +40,7 @@
   --danger-color: #ef5350;
   --warn-bg: #3a3010;
   --warn-color: #ffc107;
+  --speak-bg: #2a1a3a;
   --shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   --header-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
@@ -336,6 +337,13 @@ body {
 .module-item[data-status="passed"] {
   border-left-color: var(--success-color);
   background: var(--success-bg);
+}
+.module-item[data-status="speak-waiting"] {
+  border-left-color: #9b59b6;
+  background: #f3e8ff;
+}
+[data-theme="dark"] .module-item[data-status="speak-waiting"] {
+  background: var(--speak-bg);
 }
 .module-item[data-status="in-progress"] {
   border-left-color: var(--warn-color);
@@ -640,6 +648,69 @@ body {
   font-size: 22px;
   font-weight: 700;
   color: var(--danger-color);
+}
+
+/* ====== SPEAK MODE (开口说) ====== */
+.speak-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.speak-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.speak-chn {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 20px;
+  margin: 12px 0;
+  background: var(--primary-light);
+  border-radius: 12px;
+  line-height: 1.4;
+  border: 2px dashed var(--primary);
+}
+.speak-hint {
+  font-size: 13px;
+  margin-bottom: 16px;
+  color: var(--text2);
+}
+.speak-mic-area {
+  margin: 16px 0;
+  text-align: center;
+}
+.speak-result {
+  margin-top: 12px;
+  font-size: 15px;
+  padding: 10px;
+  background: var(--primary-light);
+  border-radius: 8px;
+}
+.speak-feedback {
+  margin-top: 12px;
+}
+.speak-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 18px;
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  box-sizing: border-box;
+  text-align: center;
+}
+.speak-input:focus {
+  border-color: var(--primary);
 }
 
 /* ====== RESPONSIVE ====== */

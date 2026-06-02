@@ -5,6 +5,9 @@ const TEST_LIVES = 5; // 5条命
 
 const REVIEW_INTERVALS = [1, 3, 7, 14, 30]; // 间隔重复(天)
 
+// 语音识别（开口说模式用）
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -111,8 +114,10 @@ const ChunkApp = {
         attempts: 0,
         correct: 0,
         passed: false,
+        learnedOnce: false,
         testCheck: false,
         testPassed: false,
+        speakPassed: false,
         reviewStage: -1, // -1=未进入复习, 0=待首次复习…
         lastReviewTime: 0,
       };
@@ -140,19 +145,28 @@ const ChunkApp = {
   calcLevelStats(levelId) {
     const level = CORPUS.find((l) => l.id === levelId);
     if (!level)
-      return { total: 0, testPassed: 0, waitingTest: 0, practicing: 0 };
-    let testPassed = 0,
+      return {
+        total: 0,
+        speakPassed: 0,
+        waitingSpeak: 0,
+        waitingTest: 0,
+        practicing: 0,
+      };
+    let speakPassed = 0,
+      waitingSpeak = 0,
       passed = 0,
       practicing = 0;
     level.modules.forEach(([eng]) => {
       const p = this.state.progress[this._key(levelId, eng)];
-      if (p && p.testPassed) testPassed++;
+      if (p && p.speakPassed) speakPassed++;
+      else if (p && p.testPassed) waitingSpeak++;
       else if (p && p.passed) passed++;
       else if (p && p.attempts > 0) practicing++;
     });
     return {
       total: level.modules.length,
-      testPassed,
+      speakPassed,
+      waitingSpeak,
       waitingTest: passed,
       practicing,
     };
@@ -277,7 +291,7 @@ const ChunkApp = {
       const completed = this.isLevelCompleted(level.id);
       const pct =
         stats.total > 0
-          ? Math.round((stats.testPassed / stats.total) * 100)
+          ? Math.round((stats.speakPassed / stats.total) * 100)
           : 0;
 
       let lockIcon = "",
@@ -311,10 +325,12 @@ const ChunkApp = {
         "</span>" +
         "</div>" +
         '<div class="level-stats">' +
-        stats.testPassed +
+        stats.speakPassed +
         "/" +
         stats.total +
-        " 达标</div>" +
+        " 通关 · 🗣️ " +
+        stats.waitingSpeak +
+        " 待开口</div>" +
         '<div class="level-bar"><div class="level-bar-fill" style="width:' +
         pct +
         "%;background:" +
@@ -344,8 +360,9 @@ const ChunkApp = {
       "📊 " +
       stats.total +
       "个模块 · 🏆 " +
-      stats.testPassed +
+      stats.speakPassed +
       "已通关" +
+      (stats.waitingSpeak > 0 ? " · 🗣️ " + stats.waitingSpeak + "待开口" : "") +
       (stats.waitingTest > 0 ? " · ⏱️ " + stats.waitingTest + "待测试" : "") +
       (stats.practicing > 0 ? " · 📝 " + stats.practicing + "练习中" : "");
 
@@ -355,9 +372,12 @@ const ChunkApp = {
       .map(([eng, chn]) => {
         const p = this._getModuleProgress(level.id, eng, chn);
         let statusIcon, statusText;
-        if (p.testPassed) {
+        if (p.speakPassed) {
           statusIcon = "🏆";
           statusText = "已通关";
+        } else if (p.testPassed) {
+          statusIcon = "🗣️";
+          statusText = "待开口";
         } else if (p.passed) {
           statusIcon = "⏱️";
           statusText = "待测试";
@@ -371,13 +391,15 @@ const ChunkApp = {
 
         return (
           '<div class="module-item" data-status="' +
-          (p.testPassed
+          (p.speakPassed
             ? "test-passed"
-            : p.passed
-              ? "passed"
-              : p.attempts > 0
-                ? "in-progress"
-                : "") +
+            : p.testPassed
+              ? "speak-waiting"
+              : p.passed
+                ? "passed"
+                : p.attempts > 0
+                  ? "in-progress"
+                  : "") +
           '">' +
           '<div class="module-left">' +
           '<span class="module-status">' +
@@ -424,6 +446,13 @@ const ChunkApp = {
         desc: "限时" + TEST_TIME_LIMIT + "秒，" + TEST_LIVES + "条命",
         color: "#e74c3c",
       },
+      {
+        id: "speak",
+        icon: "🗣️",
+        name: "开口说",
+        desc: "看中文，说出或打出英文，验证听懂",
+        color: "#9b59b6",
+      },
     ];
     modeBtns.innerHTML = modes
       .map(
@@ -453,6 +482,7 @@ const ChunkApp = {
       learn: "📖 学习模式",
       practice: "🎯 听辨模式",
       test: "⏱️ 自动化测试",
+      speak: "🗣️ 开口说",
       review: "📚 间隔复习",
     };
     $("training-header").innerHTML =
@@ -474,12 +504,18 @@ const ChunkApp = {
     else if (mode === "review") this._startReview(level, area);
     else if (mode === "practice") this._startPractice(level, area);
     else if (mode === "test") this._startTest(level, area);
+    else if (mode === "speak") this._startSpeak(level, area);
   },
 
   // --- LEARN MODE ---
   _startLearn(level, area) {
     const modules = level.modules;
-    let idx = 0;
+    // 找到第一个未学过的模块续播
+    let idx = modules.findIndex(([eng]) => {
+      const p = this._getModuleProgress(level.id, eng);
+      return !p.learnedOnce;
+    });
+    if (idx < 0) idx = modules.length;
 
     const renderStep = () => {
       if (idx >= modules.length) {
@@ -542,6 +578,9 @@ const ChunkApp = {
         nextBtn.style.display = "inline-block";
       };
       nextBtn.onclick = function () {
+        const p = ChunkApp._getModuleProgress(level.id, eng, chn);
+        p.learnedOnce = true;
+        ChunkApp._saveProgress();
         idx++;
         renderStep();
       };
@@ -583,13 +622,12 @@ const ChunkApp = {
       const chn = p.chn;
       round++;
 
+      // 从全局语料取真实干扰项
       let options = [chn];
       const others = allModules.filter((m) => m[1] !== chn && m[0] !== eng);
-      for (let i = 0; i < 3 && i < others.length; i++) {
-        options.push(others[Math.floor(Math.random() * others.length)][1]);
-      }
-      while (options.length < 4) {
-        options.push("———");
+      const shuffled = [...others].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < shuffled.length && options.length < 4; i++) {
+        if (!options.includes(shuffled[i][1])) options.push(shuffled[i][1]);
       }
       options.sort(() => Math.random() - 0.5);
 
@@ -701,14 +739,13 @@ const ChunkApp = {
       const p = this._getModuleProgress(level.id, eng, chn);
       round++;
 
-      // 生成4个不重复选项
+      // 从全局语料取真实干扰项
       let options = [chn];
       const others = allModules.filter((m) => m[1] !== chn && m[0] !== eng);
       const shuffled = [...others].sort(() => Math.random() - 0.5);
-      for (let i = 0; i < 3 && i < shuffled.length; i++) {
-        options.push(shuffled[i][1]);
+      for (let i = 0; i < shuffled.length && options.length < 4; i++) {
+        if (!options.includes(shuffled[i][1])) options.push(shuffled[i][1]);
       }
-      while (options.length < 4) options.push("———");
       options.sort(() => Math.random() - 0.5);
 
       const labels = ["A", "B", "C", "D"];
@@ -873,13 +910,13 @@ const ChunkApp = {
       currentChn = chn;
       const p = this._getModuleProgress(level.id, eng, chn);
 
+      // 从全局语料取真实干扰项
       let options = [chn];
       const others = allModules.filter((m) => m[1] !== chn && m[0] !== eng);
       const shuffled = [...others].sort(() => Math.random() - 0.5);
-      for (let i = 0; i < 3 && i < shuffled.length; i++) {
-        options.push(shuffled[i][1]);
+      for (let i = 0; i < shuffled.length && options.length < 4; i++) {
+        if (!options.includes(shuffled[i][1])) options.push(shuffled[i][1]);
       }
-      while (options.length < 4) options.push("———");
       options.sort(() => Math.random() - 0.5);
 
       const labels = ["A", "B", "C", "D"];
@@ -1038,6 +1075,250 @@ const ChunkApp = {
     }
 
     nextRound();
+  },
+
+  // --- SPEAK MODE (开口说) ---
+  _startSpeak(level, area) {
+    const modules = level.modules;
+
+    const getSpeakable = () =>
+      modules.filter(([eng]) => {
+        const p = this._getModuleProgress(level.id, eng);
+        return p.testPassed && !p.speakPassed;
+      });
+
+    let active = getSpeakable();
+    let round = 0;
+
+    if (active.length === 0) {
+      const allDone = modules.every(([eng]) => {
+        const p = this._getModuleProgress(level.id, eng);
+        return p.speakPassed;
+      });
+      area.innerHTML = allDone
+        ? '<div class="completed-view"><div class="completed-icon">🏆🏆🏆</div>' +
+          '<div class="completed-text">🎉 本级全部通关！所有模块已通过开口说测试！</div>' +
+          '<button class="btn" onclick="ChunkApp.selectLevel(' +
+          level.id +
+          ')">返回</button></div>'
+        : '<div class="completed-view"><div class="completed-icon">⚠️</div>' +
+          '<div class="completed-text">尚无待开口模块。请先通过自动化测试，再来开口说。</div>' +
+          '<button class="btn" onclick="ChunkApp.selectMode(\'test\')">去测试 →</button>' +
+          '<button class="btn btn-secondary" onclick="ChunkApp.selectLevel(' +
+          level.id +
+          ')">返回</button></div>';
+      return;
+    }
+
+    const renderSpeak = () => {
+      delete area.dataset.speakRetry;
+      active = getSpeakable();
+      if (active.length === 0) {
+        area.innerHTML =
+          '<div class="completed-view"><div class="completed-icon">🎉</div>' +
+          '<div class="completed-text">开口说全部完成！</div>' +
+          '<button class="btn" onclick="ChunkApp.selectLevel(' +
+          level.id +
+          ')">返回</button></div>';
+        return;
+      }
+
+      const [eng, chn] = active[Math.floor(Math.random() * active.length)];
+      const p = this._getModuleProgress(level.id, eng, chn);
+      round++;
+
+      area.innerHTML =
+        '<div class="speak-header">' +
+        '<span class="round-badge">第 ' +
+        round +
+        " 轮</span>" +
+        '<span class="passed-badge">剩余 ' +
+        active.length +
+        " 个</span></div>" +
+        '<div class="speak-card">' +
+        '<div class="speak-chn">' +
+        chn +
+        "</div>" +
+        '<div class="speak-hint">说或写都行，意思对就过 👇</div>' +
+        '<div class="speak-mic-area" id="speak-mic-area">' +
+        '<input type="text" id="speak-input" class="speak-input" placeholder="输入英文..." autofocus />' +
+        '<div style="margin-top:8px;display:flex;gap:8px;justify-content:center">' +
+        '<button class="btn" id="speak-submit-btn">确认</button>' +
+        (SR
+          ? '<button class="btn btn-secondary" id="speak-mic-btn">🎤 说</button>'
+          : "") +
+        "</div></div>" +
+        '<div class="speak-result" id="speak-result" style="display:none"></div>' +
+        '<div class="speak-feedback" id="speak-feedback" style="display:none"></div></div>';
+
+      // 提交判断
+      const doCheck = (text) => {
+        this._checkSpeakAnswer(text, eng, chn, p, area, renderSpeak);
+      };
+
+      $("speak-submit-btn").onclick = () => doCheck($("speak-input").value);
+      $("speak-input").onkeydown = (e) => {
+        if (e.key === "Enter") doCheck($("speak-input").value);
+      };
+      $("speak-input").focus();
+
+      // 语音识别（可选附加）
+      if (SR && $("speak-mic-btn")) {
+        $("speak-mic-btn").onclick = () => {
+          try {
+            const rec = new SR();
+            rec.lang = "en-US";
+            rec.continuous = false;
+            rec.interimResults = false;
+            rec.maxAlternatives = 1;
+            rec.onresult = (e) => {
+              const t = e.results[0][0].transcript.trim();
+              $("speak-input").value = t;
+              doCheck(t);
+            };
+            rec.onerror = () => {
+              $("speak-feedback").style.display = "block";
+              $("speak-feedback").innerHTML =
+                '<div class="feedback wrong">⚠️ 没识别出来，打字也行</div>';
+            };
+            rec.start();
+          } catch (err) {
+            $("speak-feedback").style.display = "block";
+            $("speak-feedback").innerHTML =
+              '<div class="feedback wrong">⚠️ ' + err.message + "</div>";
+          }
+        };
+      }
+    };
+
+    renderSpeak();
+  },
+
+  _checkSpeakAnswer(userText, expectedEng, chn, p, area, callback) {
+    const fb = $("speak-feedback");
+    fb.style.display = "block";
+
+    const normalize = (s) =>
+      s
+        .toLowerCase()
+        .replace(/[^\w\s']/g, "")
+        .trim();
+
+    const normUser = normalize(userText);
+    const normExpected = normalize(expectedEng);
+
+    // 精确匹配
+    if (normUser === normExpected) {
+      p.speakPassed = true;
+      this._saveProgress();
+      fb.innerHTML = '<div class="feedback correct">✅ 正确！</div>';
+      setTimeout(callback, 1200);
+      return;
+    }
+
+    // 冠词容错 (a/an/the)
+    const stripArticle = (s) => s.replace(/\b(a|an|the)\s+/g, "").trim();
+    if (stripArticle(normUser) === stripArticle(normExpected)) {
+      p.speakPassed = true;
+      this._saveProgress();
+      fb.innerHTML = '<div class="feedback correct">✅ 正确！</div>';
+      setTimeout(callback, 1200);
+      return;
+    }
+
+    // 拼写容错（较长字符串）
+    if (
+      normUser.length > 4 &&
+      normExpected.length > 4 &&
+      this._levenshtein(normUser, normExpected) <=
+        Math.max(1, Math.floor(normExpected.length * 0.2))
+    ) {
+      p.speakPassed = true;
+      this._saveProgress();
+      fb.innerHTML = '<div class="feedback correct">✅ 正确！</div>';
+      setTimeout(callback, 1200);
+      return;
+    }
+
+    // 不对 → 重试或显示答案
+    const isRetry = area.dataset.speakRetry === "1";
+
+    if (!isRetry) {
+      // 第一次不对，给重试机会
+      area.dataset.speakRetry = "1";
+      const hint = expectedEng.replace(/\b(\w)\w+/g, "$1___");
+
+      fb.innerHTML =
+        '<div class="feedback wrong" id="speak-fb-text">❌ 不对，再试试</div>' +
+        '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">' +
+        '<button class="btn" id="speak-retry-btn">再试一次</button>' +
+        '<button class="btn btn-secondary" id="speak-hint-btn">💡 提示</button>' +
+        '<button class="btn btn-secondary" id="speak-skip-btn">跳过 →</button></div>';
+
+      const doRetry = () => {
+        $("speak-input").focus();
+        this._checkSpeakAnswer(
+          $("speak-input").value,
+          expectedEng,
+          chn,
+          p,
+          area,
+          callback,
+        );
+      };
+      const doSkip = () => {
+        delete area.dataset.speakRetry;
+        fb.innerHTML = "";
+        fb.style.display = "none";
+        callback();
+      };
+
+      setTimeout(() => {
+        const retryBtn = $("speak-retry-btn");
+        const hintBtn = $("speak-hint-btn");
+        const skipBtn = $("speak-skip-btn");
+        if (retryBtn) retryBtn.onclick = doRetry;
+        if (hintBtn)
+          hintBtn.onclick = () => {
+            const t = $("speak-fb-text");
+            if (t) t.textContent = "💡 " + hint;
+          };
+        if (skipBtn) skipBtn.onclick = doSkip;
+      }, 50);
+    } else {
+      // 第二次不对 → 显示正确答案
+      delete area.dataset.speakRetry;
+      fb.innerHTML =
+        '<div class="feedback wrong">期望：<strong>' +
+        expectedEng +
+        "</strong></div>" +
+        '<button class="btn" id="speak-skip-btn" style="margin-top:12px">继续 →</button>';
+
+      setTimeout(() => {
+        const btn = $("speak-skip-btn");
+        if (btn)
+          btn.onclick = () => {
+            fb.innerHTML = "";
+            fb.style.display = "none";
+            callback();
+          };
+      }, 50);
+    }
+  },
+
+  _levenshtein(a, b) {
+    const m = a.length,
+      n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++)
+      for (let j = 1; j <= n; j++)
+        dp[i][j] =
+          a[i - 1] === b[j - 1]
+            ? dp[i - 1][j - 1]
+            : Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1;
+    return dp[m][n];
   },
 
   // ==================== 导出/导入 ====================
