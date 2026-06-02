@@ -45,14 +45,6 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.all {
-            val date = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())
-            outputFileName = "ChunkEar-${variant.name}-${date}.apk"
-        }
-    }
 }
 
 dependencies {
