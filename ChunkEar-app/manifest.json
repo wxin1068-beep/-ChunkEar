@@ -1,7 +1,7 @@
 {
   "name": "ChunkEar · 语块听",
   "short_name": "ChunkEar",
-  "description": "语义模块渐进式英语听力训练 — 从最简单的语块开始，逐级自动化",
+  "description": "语义模块渐进式英语听力训练 — v1.0 支持自定义语料库",
   "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
