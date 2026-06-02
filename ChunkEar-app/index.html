@@ -144,11 +144,26 @@
                 "
               />
             </label>
+            <button
+              class="btn btn-secondary"
+              onclick="ChunkApp.showCustomMgmt()"
+            >
+              📝 管理语料库
+            </button>
           </div>
           <div style="font-size: 11px; color: var(--text3); margin-top: 6px">
-            数据自动保存在本机 · 可随时导出备份
+            数据自动保存在本机 · 可随时导出备份 · 自定义语料库支持导入导出
           </div>
         </div>
+      </section>
+
+      <!-- CUSTOM CORPUS MANAGEMENT VIEW -->
+      <section id="view-custom-mgmt" class="view">
+        <div class="back-row" onclick="ChunkApp.showHome()">
+          <button class="back-btn">‹</button>
+          <span style="font-size: 14px; color: var(--text2)">返回</span>
+        </div>
+        <div id="custom-mgmt-area"></div>
       </section>
 
       <!-- LEVEL VIEW -->

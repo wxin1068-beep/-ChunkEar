@@ -33,6 +33,7 @@ const ChunkApp = {
     } catch (e) {
       console.warn(e);
     }
+    this._rebuildCustomLevel();
     this._applyTheme();
     this.showHome();
   },
@@ -277,6 +278,192 @@ const ChunkApp = {
     }
   },
 
+  // ==================== CUSTOM CORPUS ====================
+  _getCustomCorpus() {
+    try {
+      const data = localStorage.getItem("chunkear-custom-corpus");
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  _saveCustomCorpus(arr) {
+    localStorage.setItem("chunkear-custom-corpus", JSON.stringify(arr));
+  },
+
+  _rebuildCustomLevel() {
+    const idx = CORPUS.findIndex((l) => l.id === "custom");
+    if (idx >= 0) CORPUS.splice(idx, 1);
+    const custom = this._getCustomCorpus();
+    if (custom.length > 0) {
+      CORPUS.push({
+        id: "custom",
+        name: "自定义语料",
+        icon: "📝",
+        color: "#e67e22",
+        modules: custom.map((m) => [m.en, m.cn]),
+      });
+    }
+  },
+
+  addCustomModule(en, cn) {
+    if (!en.trim() || !cn.trim()) return alert("请填写英文和中文");
+    const corpus = this._getCustomCorpus();
+    corpus.push({
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+      en: en.trim(),
+      cn: cn.trim(),
+      createdAt: Date.now(),
+    });
+    this._saveCustomCorpus(corpus);
+    this._rebuildCustomLevel();
+    this._renderCustomMgmt();
+    $("cm-en").value = "";
+    $("cm-cn").value = "";
+  },
+
+  removeCustomModule(id) {
+    let corpus = this._getCustomCorpus();
+    corpus = corpus.filter((m) => m.id !== id);
+    this._saveCustomCorpus(corpus);
+    this._rebuildCustomLevel();
+    this._renderCustomMgmt();
+  },
+
+  exportCustomCorpus() {
+    const corpus = this._getCustomCorpus();
+    if (corpus.length === 0) return alert("自定义语料库为空");
+    const data = JSON.stringify(
+      {
+        version: 1,
+        name: "ChunkEar自定义语料",
+        exportedAt: new Date().toISOString(),
+        modules: corpus.map((m) => ({ en: m.en, cn: m.cn })),
+      },
+      null,
+      2,
+    );
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download =
+      "chunkear-custom-corpus-" +
+      new Date().toISOString().slice(0, 10) +
+      ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  importCustomCorpus(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.modules || !Array.isArray(data.modules)) throw new Error();
+        const existing = this._getCustomCorpus();
+        const existingEns = new Set(
+          existing.map((m) => m.en.toLowerCase().trim()),
+        );
+        let added = 0,
+          skipped = 0;
+        for (const m of data.modules) {
+          if (!m.en || !m.cn) continue;
+          const key = m.en.toLowerCase().trim();
+          if (!existingEns.has(key)) {
+            existing.push({
+              id:
+                Date.now().toString(36) +
+                Math.random().toString(36).substr(2, 4),
+              en: m.en.trim(),
+              cn: m.cn.trim(),
+              createdAt: Date.now(),
+            });
+            existingEns.add(key);
+            added++;
+          } else {
+            skipped++;
+          }
+        }
+        this._saveCustomCorpus(existing);
+        this._rebuildCustomLevel();
+        alert(
+          "✅ 导入成功！新增 " +
+            added +
+            " 条" +
+            (skipped > 0 ? "，跳过 " + skipped + " 条重复。" : "。"),
+        );
+        this._renderCustomMgmt();
+      } catch (err) {
+        alert("❌ 导入失败：文件格式不正确");
+      }
+    };
+    reader.readAsText(file);
+  },
+
+  showCustomMgmt() {
+    this.state.view = "custom-mgmt";
+    this._showView("custom-mgmt");
+    this._renderCustomMgmt();
+  },
+
+  _renderCustomMgmt() {
+    const area = $("custom-mgmt-area");
+    const corpus = this._getCustomCorpus();
+
+    area.innerHTML =
+      '<div class="cm-card">' +
+      '<div class="cm-card-title">📝 添加语料</div>' +
+      '<div class="cm-form">' +
+      '<div class="cm-form-row">' +
+      '<input class="cm-input" id="cm-en" placeholder="英文（如: I think so）" />' +
+      '<input class="cm-input" id="cm-cn" placeholder="中文（如: 我也这么想）" />' +
+      "<button class=\"btn cm-add-btn\" onclick=\"ChunkApp.addCustomModule(document.getElementById('cm-en').value, document.getElementById('cm-cn').value)\">添加</button>" +
+      "</div>" +
+      "</div>" +
+      "</div>" +
+      '<div class="cm-card">' +
+      '<div class="cm-card-title">📚 自定义语料（' +
+      corpus.length +
+      " 条）</div>" +
+      (corpus.length === 0
+        ? '<div class="cm-empty">还没有添加自定义语料，在上方填写添加。</div>'
+        : '<ul class="cm-list">' +
+          corpus
+            .map(
+              (m) =>
+                '<li class="cm-list-item">' +
+                '<div class="cm-item-text">' +
+                '<div class="cm-item-en">' +
+                m.en +
+                "</div>" +
+                '<div class="cm-item-cn">' +
+                m.cn +
+                "</div>" +
+                "</div>" +
+                '<div class="cm-item-actions">' +
+                '<button class="cm-item-delete" onclick="ChunkApp.removeCustomModule(\'' +
+                m.id +
+                '\')" title="删除">✕</button>' +
+                "</div>" +
+                "</li>",
+            )
+            .join("") +
+          "</ul>") +
+      "</div>" +
+      '<div class="cm-card">' +
+      '<div class="cm-card-title">🔁 导入 / 导出</div>' +
+      '<div class="cm-actions">' +
+      '<button class="btn btn-secondary" onclick="ChunkApp.exportCustomCorpus()">📤 导出语料库</button>' +
+      '<label class="btn btn-secondary" style="cursor:pointer">📥 导入语料库' +
+      '<input type="file" accept=".json" style="display:none" onchange="ChunkApp.importCustomCorpus(this.files[0]); this.value=\'\'" />' +
+      "</label>" +
+      "</div>" +
+      '<div style="font-size:11px;color:var(--text3);margin-top:8px">导入时自动跳过重复条目（按英文去重）</div>' +
+      "</div>";
+  },
+
   // ==================== HOME ====================
   _renderHome() {
     // 复习横幅
@@ -309,7 +496,11 @@ const ChunkApp = {
         '<div class="level-card" style="' +
         cardStyle +
         '" onclick="' +
-        (unlocked ? "ChunkApp.selectLevel(" + level.id + ")" : "") +
+        (unlocked
+          ? "ChunkApp.selectLevel(" +
+            (typeof level.id === "number" ? level.id : "'" + level.id + "'") +
+            ")"
+          : "") +
         '">' +
         '<div class="level-card-header">' +
         '<span class="level-icon">' +
@@ -454,26 +645,34 @@ const ChunkApp = {
         color: "#9b59b6",
       },
     ];
-    modeBtns.innerHTML = modes
-      .map(
-        (m) =>
-          '<div class="mode-card" style="border-top:3px solid ' +
-          m.color +
-          '" onclick="ChunkApp.selectMode(\'' +
-          m.id +
-          "')\">" +
-          '<div class="mode-icon">' +
-          m.icon +
-          "</div>" +
-          '<div class="mode-name">' +
-          m.name +
-          "</div>" +
-          '<div class="mode-desc">' +
-          m.desc +
-          "</div>" +
-          "</div>",
-      )
-      .join("");
+    modeBtns.innerHTML =
+      modes
+        .map(
+          (m) =>
+            '<div class="mode-card" style="border-top:3px solid ' +
+            m.color +
+            '" onclick="ChunkApp.selectMode(\'' +
+            m.id +
+            "')\">" +
+            '<div class="mode-icon">' +
+            m.icon +
+            "</div>" +
+            '<div class="mode-name">' +
+            m.name +
+            "</div>" +
+            '<div class="mode-desc">' +
+            m.desc +
+            "</div>" +
+            "</div>",
+        )
+        .join("") +
+      (level.id === "custom"
+        ? '<div class="mode-card" style="border-top:3px solid #888;background:var(--warn-bg)" onclick="ChunkApp.showCustomMgmt()">' +
+          '<div class="mode-icon">📝</div>' +
+          '<div class="mode-name">管理语料库</div>' +
+          '<div class="mode-desc">添加、删除、导入导出语料</div>' +
+          "</div>"
+        : "");
   },
 
   // ==================== TRAINING ====================
