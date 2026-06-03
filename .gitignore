@@ -11,3 +11,14 @@ build/
 
 # macOS
 .DS_Store
+
+# Android
+ChunkEar-Android/.gradle/
+ChunkEar-Android/.idea/
+ChunkEar-Android/local.properties
+ChunkEar-Android/*.iml
+ChunkEar-Android/app/build/
+ChunkEar-Android/build/
+
+# Raw audio source
+audio_out/
